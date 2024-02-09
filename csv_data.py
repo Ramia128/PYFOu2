@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-filtered_words = 'Asia|Europe|Africa|America|income|Poor|Countries|Dividend|Member|IDA|IBRD|States|Fragile|World'
+filtered_words = 'Asia|Euro|Africa|America|income|Poor|Countries|dividend|Member|IDA|IBRD|Fragile|World|UN|small|members|Small'
 class gdp_data():
     def total():
         ## Läser csv filen och filtrerar till country name, country code och 2010 - 2022

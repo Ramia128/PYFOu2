@@ -18,11 +18,12 @@ while True:
         x = 1
         print(gdp_data.life_expectancy(x))
     elif choose == '4':
+        x = 1
         selected_countries = ['United States', 'Norway', 'Sweden', 'Japan', 'Germany']
         title_cap = 'GDP per capita'
         title_life = 'Life Expectancy'
         df_cap = gdp_data.per_capita()
-        df_life = gdp_data.life_expectancy()
+        df_life = gdp_data.life_expectancy(x)
         gdp_graph.life_capita_graph(df_cap, df_life, selected_countries, title_cap, title_life)
     elif choose == '5':
         x = 0
