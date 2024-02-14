@@ -129,7 +129,3 @@ class gdp_graph():
 
         plt.tight_layout()
         plt.show()
-
-
-
-print(gdp_data.combine_data(1))
