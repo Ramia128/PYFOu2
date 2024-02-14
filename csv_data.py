@@ -4,48 +4,41 @@ import matplotlib.pyplot as plt
 filtered_words = 'Asia|Euro|Africa|America|income|Poor|Countries|dividend|Member|IDA|IBRD|Fragile|World|small|members|Small'
 class gdp_data():
     def total():
-        ## Läser csv filen och filtrerar till country name, country code och 2010 - 2022
         df = pd.read_csv('GDP_TOTAL.csv', skiprows=3, usecols=['Country Name'] + [str(x) for x in range(2010, 2023)])
 
-        ## Tar bort decimalen så det blir enklare att läsa
         pd.options.display.float_format = '{:,.0f}'.format
 
-        ##  Filtrerar bort NaN
         df = df.dropna()
         filtered_df = df[~df['Country Name'].str.contains(filtered_words)]
         
-        ## Sorterar den maximala GDP utifrån år 2022
         df_sorted = filtered_df.sort_values(by='2022', ascending=False)
         df_sorted_reset = df_sorted.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
         return df_sorted_reset
     
     def per_capita():
-        ## Läser csv filen och filtrerar till country name, country code och 2010 - 2022
+        
         df = pd.read_csv('GDP_PCAP.csv', skiprows=3, usecols=['Country Name'] + [str(x) for x in range(2010, 2023)])
 
-        ## Tar bort decimalen så det blir enklare att läsa
+        
         pd.options.display.float_format = '{:,.0f}'.format
 
-        ##  Filtrerar bort NaN
+        
         df = df.dropna()
         filtered_df = df[~df['Country Name'].str.contains(filtered_words, case=False)]
-        ## Sorterar livslängden enligt tabellens data
+        
         df_sorted = filtered_df.sort_values(by='2021', ascending=False)
         df_sorted_reset = df_sorted.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
         return df_sorted_reset
     
     def life_expectancy(x):
-        ## Läser csv filen och filtrerar till country name, country code och 2010 - 2022
         df = pd.read_csv('Life_Expectancy.csv', skiprows=3, usecols=['Country Name'] + [str(x) for x in range(2010, 2022)])
-        ## Tar bort decimalen så det blir enklare att läsa
         pd.options.display.float_format = '{:,.0f}'.format
 
-        ##  Filtrerar bort NaN
         df = df.dropna()
         filtered_df = df[~df['Country Name'].str.contains(filtered_words, case=False)]
-        ## Sorterar livslängden enligt tabellens data
+    
         df_sorted = filtered_df.sort_values(by='2021', ascending=False)
         df_sorted_reset = df_sorted.reset_index(drop=True)
         pd.set_option('display.max_rows', None)
@@ -55,6 +48,55 @@ class gdp_data():
             return country_over_mean[['Country Name', '2021']]
         else:
             return df_sorted_reset
+        
+
+    def combine_data(x):
+        df_life = pd.read_csv('Life_Expectancy.csv', skiprows=3, usecols=['Country Name', '2021'])
+        df_life = df_life.dropna()
+        filtered_life = df_life[~df_life['Country Name'].str.contains(filtered_words, case=False)]
+
+        df_cap = pd.read_csv('GDP_PCAP.csv', skiprows=3, usecols=['Country Name', '2021'])
+        df_cap = df_cap.dropna()
+
+        df_gdp = pd.read_csv('GDP_TOTAL.csv', skiprows=3, usecols=['Country Name', '2021'])
+        df_gdp = df_gdp.dropna()
+        
+
+        pd.options.display.float_format = '{:,.0f}'.format
+        pd.set_option('display.max_rows', None)
+        
+
+        if x == 0:
+            df_combined = pd.merge(filtered_life, df_cap, on='Country Name', suffixes=('_life', '_cap'))
+            df_combined = pd.merge(df_combined, df_gdp, on='Country Name', suffixes=('_combined', '_gdp'))
+            df_combined = df_combined.rename(columns={'2021_life': 'Life Expectancy', '2021_cap': 'GDP per Capita', '2021': 'GDP'})
+            df_sorted = df_combined.sort_values(by=['Life Expectancy'], ascending=False)
+            df_sorted_reset = df_sorted.reset_index(drop=True)
+        elif x == 1:
+            df_combined = pd.merge(filtered_life, df_gdp, on='Country Name', suffixes=('_life', '_gdp'))
+            df_combined = df_combined.rename(columns={'2021_life': 'Life Expectancy', '2021_gdp': 'GDP'})
+            df_sorted = df_combined.sort_values(by=['GDP'], ascending=False)
+            df_head = df_sorted.head(10)
+            df_sorted_reset = df_head.reset_index(drop=True)
+        else:
+            df_combined = pd.merge(filtered_life, df_cap, on='Country Name', suffixes=('_life', '_cap'))
+            df_combined = df_combined.rename(columns={'2021_life': 'Life Expectancy', '2021_cap': 'GDP per Capita'})
+            df_sorted = df_combined.sort_values(by=['GDP per Capita'], ascending=False)
+            df_head = df_sorted.head(20)
+            df_sorted_reset = df_head.reset_index(drop=True)
+
+
+        return df_sorted_reset
+
+    def low_gdp_high_life():
+        df_combined = gdp_data.combine_data(0)
+
+        condition = (df_combined['Life Expectancy'] > 75) & (df_combined['GDP'] < 1e10 ) & (df_combined['GDP per Capita'] < 1e5)
+
+        result = df_combined[condition][['Country Name', 'Life Expectancy', 'GDP', 'GDP per Capita']]
+        result_reset = result.reset_index(drop=True)
+
+        return result_reset
 
 
 
@@ -87,3 +129,7 @@ class gdp_graph():
 
         plt.tight_layout()
         plt.show()
+
+
+
+print(gdp_data.combine_data(1))
